@@ -5,24 +5,50 @@ from supabase import create_client, Client
 from datetime import datetime
 import json
 from dotenv import load_dotenv
+import time
+from datetime import datetime, timedelta
+import pytz
 
 load_dotenv()
-
-print(dict(os.environ))
 
 # Environment variables
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+JAKARTA_TZ = pytz.timezone("Asia/Jakarta")
+
+def is_within_trading_hours(now):
+    return 9 <= now.hour < 16
+
+def sleep_until_next_active_window(now):
+    # Calculate when to wake up next day at 9AM WIB
+    if now.hour >= 16:
+        # Next day
+        next_start = (now + timedelta(days=1)).replace(hour=9, minute=0, second=0, microsecond=0)
+    elif now.hour < 9:
+        # Later this morning
+        next_start = now.replace(hour=9, minute=0, second=0, microsecond=0)
+    else:
+        return 0  # we're within trading hours, no sleep needed
+
+    sleep_seconds = (next_start - now).total_seconds()
+    print(f"🌙 Outside trading hours. Sleeping until next window at {next_start.strftime('%H:%M')} WIB ({int(sleep_seconds)}s)")
+    return sleep_seconds
 
 print(SUPABASE_KEY)
 
 # IDX stocks (append .JK) and ^JKSE
 STOCKS = {
+    "^JKSE": "IHSG",
     "BBCA.JK": "BBCA",
     "TLKM.JK": "TLKM",
     "UNVR.JK": "UNVR",
     "GGRM.JK": "GGRM",
-    "^JKSE": "IHSG"
+    "BBRI.JK": "BBRI",
+    "ICBP.JK": "ICBP",
+    "INTP.JK": "INTP",
+    "BMRI.JK": "BMRI",
+    "KLBF.JK": "KLBF",
+    "ASII.JK": "ASII",
 }
 
 # Connect to Supabase
@@ -47,7 +73,13 @@ def safe_convert(value, target_type):
         return None
 
 def parse_stock_info(info):
+
     """Parse yfinance info dict into structured data with proper types"""
+    
+    currentPrice = safe_convert(info.get("currentPrice"), str)
+    if currentPrice is None:
+        currentPrice = safe_convert(info.get("regularMarketPrice"), str)
+
     return {
         # Basic Info
         "symbol": safe_convert(info.get("symbol"), str),
@@ -81,7 +113,7 @@ def parse_stock_info(info):
         "price_to_book": safe_convert(info.get("priceToBook"), float),
         
         # Price Metrics
-        "current_price": safe_convert(info.get("currentPrice"), float),
+        "current_price": currentPrice,
         "previous_close": safe_convert(info.get("previousClose"), float),
         "open_price": safe_convert(info.get("open"), float),
         "day_low": safe_convert(info.get("dayLow"), float),
@@ -170,18 +202,19 @@ def fetch_metadata(symbol):
     """Fetch basic metadata for stocks table"""
     t = yf.Ticker(symbol)
     hist = t.history(period="1d", interval="1m")
+    
     current_price = float(hist["Close"].iloc[-1]) if not hist.empty else None
 
     info = t.info
     name = info.get("longName", "Unknown")
     sector = info.get("sector", "Unknown")
-    marketCap = safe_convert(info.get("marketCap"), int)
-
+    previousClose = safe_convert(info.get("previousClose"), float)
+    
     return {
         "current_price": current_price,
         "name": name,
         "sector": sector,
-        "market_cap": marketCap,
+        "previous_close": previousClose,
         "info": info  # Return full info for stock-detail table
     }
 
@@ -215,7 +248,8 @@ def upsert_stock(symbol_yahoo, symbol_clean):
     if existing.data:
         # Update existing row
         supabase.table("stocks").update({
-            "current_price": data["current_price"]
+            "current_price": data["current_price"],
+            "previous_close": data["previous_close"]
         }).eq("symbol", symbol_clean).execute()
         print(f"✅ Updated {symbol_clean}: {data['current_price']}")
     else:
@@ -224,7 +258,7 @@ def upsert_stock(symbol_yahoo, symbol_clean):
             "symbol": symbol_clean,
             "name": data["name"],
             "sector": data["sector"],
-            "market_cap": data["market_cap"],
+            "previous_close": data["previous_close"],
             "current_price": data["current_price"]
         }).execute()
         print(f"➕ Inserted {symbol_clean}: {data['current_price']}")
@@ -235,9 +269,15 @@ def upsert_stock(symbol_yahoo, symbol_clean):
     except Exception as e:
         print(f"❌ Error updating stock details for {symbol_clean}: {str(e)}")
 
-# Main execution loop
+# Main loop
 while True:
-    for symbol_yahoo, symbol_clean in STOCKS.items():
-        upsert_stock(symbol_yahoo, symbol_clean)
-    print("⏱️ Sleeping for 15 minutes...")
-    time.sleep(15 * 60)
+    now = datetime.now(JAKARTA_TZ)
+
+    if is_within_trading_hours(now):
+        for symbol_yahoo, symbol_clean in STOCKS.items():
+            upsert_stock(symbol_yahoo, symbol_clean)
+        print("⏱️ Sleeping for 5 minutes...")
+        time.sleep(5 * 60)
+    else:
+        sleep_duration = sleep_until_next_active_window(now)
+        time.sleep(sleep_duration)
