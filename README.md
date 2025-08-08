@@ -12,11 +12,11 @@ This will update the list of stocks from 9.00 am to 05.00 pm every day every 5 m
 6. ```kill [number next to root]```: Kill the mainscript.py thread. DO NOT KILL grep --color=auto python3
 7. ```nano mainscript.py```: Open mainscript.py
 8. Copy the changes and paste to mainscript.py, then ```command + s``` -> ```command + x```
-9. ```nobup python3 -u mainscript.py &```
+9. ```nohup python3 -u mainscript.py &```
 
 ## Some command guides:
 - ```ls```: Check files in the folder,
-- ```nobup python3 -u mainscript.py &```: Run script in background.
+- ```nohup python3 -u mainscript.py &```: Run script in background.
 - ```tail -f nohup.out```: Check if script it working behind background.
 - ```ps aux | grep python3```: See threads running in background.
 - ```kill [number next to root]```: Kill thread running in background.
