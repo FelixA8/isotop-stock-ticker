@@ -40,17 +40,30 @@ INDEX_SYMBOLS = {
 }
 
 STOCK_SYMBOLS = {
-    "BBCA.JK": "BBCA",
-    "TLKM.JK": "TLKM",
-    "UNVR.JK": "UNVR",
-    "GGRM.JK": "GGRM",
-    "BBRI.JK": "BBRI",
-    "ICBP.JK": "ICBP",
-    "INTP.JK": "INTP",
-    "BMRI.JK": "BMRI",
-    "KLBF.JK": "KLBF",
+    "ADRO.JK": "ADRO",
+    "AKRA.JK": "AKRA",
+    "ANTM.JK": "ANTM",
     "ASII.JK": "ASII",
+    "BBCA.JK": "BBCA",
+    "BBNI.JK": "BBNI",
+    "BBRI.JK": "BBRI",
+    "BMRI.JK": "BMRI",
+    "ITMG.JK": "ITMG",
+    "ICBP.JK": "ICBP",
+    "INDF.JK": "INDF",
+    "ISAT.JK": "ISAT",
+    "KLBF.JK": "KLBF",
+    "MEDC.JK": "MEDC",
+    "SMGR.JK": "SMGR",
+    "PTBA.JK": "PTBA",
+    "TLKM.JK": "TLKM",
+    "UNTR.JK": "UNTR",
+    "UNVR.JK": "UNVR",
+    "TPIA.JK": "TPIA",
+    "EXCL.JK": "EXCL",
+    "GOTO.JK": "GOTO"
 }
+
 
 # Connect to Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
