@@ -41,6 +41,7 @@ INDEX_SYMBOLS = {
 
 STOCK_SYMBOLS = {
     "ADRO.JK": "ADRO",
+    "ASII.JK": "ASII",
     "AKRA.JK": "AKRA",
     "ANTM.JK": "ANTM",
     "ASII.JK": "ASII",
