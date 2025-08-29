@@ -21,10 +21,10 @@ def sleep_until_next_active_window(now):
     # Calculate when to wake up next day at 9AM WIB
     if now.hour >= 16:
         # Next day
-        next_start = (now + timedelta(days=1)).replace(hour=9, minute=0, second=0, microsecond=0)
+        next_start = (now + timedelta(days=1)).replace(hour=9, minute=10, second=0, microsecond=0)
     elif now.hour < 9:
         # Later this morning
-        next_start = now.replace(hour=9, minute=0, second=0, microsecond=0)
+        next_start = now.replace(hour=9, minute=10, second=0, microsecond=0)
     else:
         return 0  # we're within trading hours, no sleep needed
 
