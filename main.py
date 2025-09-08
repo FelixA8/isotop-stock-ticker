@@ -15,11 +15,11 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 JAKARTA_TZ = pytz.timezone("Asia/Jakarta")
 
 def is_within_trading_hours(now):
-    return 9 <= now.hour < 16
+    return 9 <= now.hour < 17
 
 def sleep_until_next_active_window(now):
     # Calculate when to wake up next day at 9AM WIB
-    if now.hour >= 16:
+    if now.hour >= 17:
         # Next day
         next_start = (now + timedelta(days=1)).replace(hour=9, minute=10, second=0, microsecond=0)
     elif now.hour < 9:
